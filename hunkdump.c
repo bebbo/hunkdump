@@ -170,6 +170,7 @@ int main(int argc, char ** argv) {
 					unsigned b = sz >> 24;
 					readName(l, f);
 					printf("ext %d %s\n", b, name);
+					if (b < 200) b &= ~0x40;
 					switch (b) {
 					case 0: // ext_symb
 					case 1: // ext_def
