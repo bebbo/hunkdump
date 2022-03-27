@@ -147,6 +147,7 @@ int main(int argc, char ** argv) {
 			case 0x3f8: // DRELOC16
 			case 0x3f9: // DRELOC8
 			case 0x3f0: // SYMBOL
+			case 0x3fd: // HUNK_RELRELOC32
 			case 0x3fe: // ABSRELOC16
 				while (sz) {
 					unsigned hn = read4(f);
