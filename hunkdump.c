@@ -8,6 +8,13 @@ unsigned read4(FILE * f) {
 	return (b[0] << 24) | (b[1] << 16) | (b[2] << 8) | b[3];
 }
 
+unsigned read2(FILE * f) {
+	static unsigned char b[2];
+	if (fread(b, 2, 1, f) != 1)
+		return 0xffffffff;
+	return (b[0] << 8) | b[1];
+}
+
 unsigned nameLen; // size of current name
 char * name;    // some name
 
@@ -97,7 +104,7 @@ int main(int argc, char ** argv) {
 				continue;
 			}
 
-			unsigned sz = read4(f);
+			unsigned sz = (hid == 0x3f7 || hid == 0x3fc) ? read2(f) : read4(f);
 			printf("hunk %08x, %16s, %10d\n", hid, nameOf(hid), sz << 2);
 
 			switch (hid & 0x3fffffff) {
@@ -113,7 +120,7 @@ int main(int argc, char ** argv) {
 				printf("%d sections, %d - %d \nsizes: ", nsecs, first, last);
 				for (int i = 0; i < nsecs; ++i) {
 					sz = read4(f);
-					printf("%d", sz << 2);
+					printf("%d", (sz & 0x7fffffff) << 2);
 					if (sz & 0x80000000)
 						printf("(f)");
 					if (sz & 0x40000000)
@@ -143,7 +150,6 @@ int main(int argc, char ** argv) {
 			case 0x3ec: // RELOC32
 			case 0x3ed: // RELOC16
 			case 0x3ee: // RELOC8
-			case 0x3f7: // DRELOC32
 			case 0x3f8: // DRELOC16
 			case 0x3f9: // DRELOC8
 			case 0x3f0: // SYMBOL
@@ -156,12 +162,17 @@ int main(int argc, char ** argv) {
 				}
 				break;
 
+			case 0x3f7: // DRELOC32
 			case 0x3fc: // RELOC32SHORT
+				int pad = 1 + sz;
 				while (sz) {
-					unsigned hn = read4(f);
+					unsigned hn = read2(f);
 					fseek(f, sz * 2, SEEK_CUR);
-					sz = read4(f);
+					sz = read2(f);
+					pad += sz;
 				}
+				if (pad & 1)
+					read2(f);
 				break;
 
 			case 0x3ef: // EXT
