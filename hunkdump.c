@@ -177,12 +177,12 @@ int main(int argc, char ** argv) {
 
 			case 0x3ef: // EXT
 				while (sz & 0xff000000) {
-					printf("%08x ", sz);
+					printf("%08x ", sz & 0xffffff);
 					unsigned l = sz & 0xffffff;
 					unsigned b = sz >> 24;
 					readName(l, f);
 					printf("ext %d %s\n", b, name);
-					if (b < 200) b &= ~0x40;
+					if (b < 200) b &= ~0x60;
 					switch (b) {
 					case 0: // ext_symb
 					case 1: // ext_def
